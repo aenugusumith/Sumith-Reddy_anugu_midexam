@@ -5,7 +5,6 @@ const OrderState = Object.freeze({
     SELECT_ITEMS: Symbol("SELECT_ITEMS"),
     UPSELL_ITEM: Symbol("UPSELL_ITEM"),
     TOTAL_CALCULATION: Symbol("TOTAL_CALCULATION"),
-    CONFIRM_PURCHASE: Symbol("CONFIRM_PURCHASE"),
 });
 
 const itemPrices = {
@@ -23,7 +22,6 @@ class homeAppliance extends Order {
         this.items = [];
         this.upsellitem = 0;
         this.totalPrice = 0;
-        this.sConfirm = "";
     }
 
     handleInput(sInput) {
@@ -49,7 +47,7 @@ class homeAppliance extends Order {
                     aReturn.push("Would you like to add an upsell item? (Yes/No)");
                     this.stateCur = OrderState.UPSELL_ITEM;
                 }else {
-                    aReturn.push("We don't have that item at the moment. Please choose from available items.");
+                    aReturn.push("Invalid choice!!!");
                     this.stateCur = OrderState.SELECT_ITEMS;
                 }
                 break;
@@ -72,34 +70,26 @@ class homeAppliance extends Order {
                     this.upsellitem = 0;
                     this.stateCur = OrderState.TOTAL_CALCULATION;
                 } else{
-                    aReturn.push("Invalid upsell item.");
+                    aReturn.push("Invalid choice!!!");
                     this.stateCur = OrderState.UPSELL_ITEM;
                 }
                 break;
     
             case OrderState.TOTAL_CALCULATION:
+                const selectedItems = this.items.length > 0 ? `Selected Items: ${this.items.join(', ')}` : "No items selected";
+                const upsellItem = this.upsellitem > 0 ? `Upsell Item: ${this.upsellitem === 35 ? "Geeky headlamps" : "Ear buds"}` : "No upsell item selected";
                 this.totalPrice = calcTotalPrice(this.items) + this.upsellitem;
                 const amt = this.totalPrice;
                 const tax = this.totalPrice * TAX_RATE;
                 const total = this.totalPrice + tax;
+                aReturn.push("Thank you for your purchase!");
+                aReturn.push(selectedItems);
+                aReturn.push(upsellItem);
                 aReturn.push(`Total price: $${amt}`);
                 aReturn.push(`Tax amount: $${tax}`);
                 aReturn.push(`Your final bill inclusive tax is $${total}.`);
-                aReturn.push("Would you like to confirm your purchase? (Yes/No)");
-                this.stateCur = OrderState.CONFIRM_PURCHASE;
-                break;
-
-            case OrderState.CONFIRM_PURCHASE:
-                if (sInput.toLowerCase() === "yes") {
-                    aReturn.push("Thank you for your purchase!");
-
-                    aReturn.push(`Your final bill inclusive tax is $${total}.`);
-                    aReturn.push("We will text you from 519-123-1234 when your order is ready or if we have questions.");
-                    this.isDone(true);
-                } else if (sInput.toLowerCase() === "no") {
-                    aReturn.push("Your order has been canceled.");
-                    this.isDone(true);
-                }
+                aReturn.push("We will text you from 519-123-1234 when your order is ready");
+                this.isDone(true);
                 break;
         }
 
